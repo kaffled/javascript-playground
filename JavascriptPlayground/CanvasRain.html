@@ -1,0 +1,119 @@
+<html>
+	<head>
+		<title>blog.kaffled.com - Canvas Rain</title>
+		
+		<style type="text/css">
+			* {margin:0;padding:0;} 
+			html, body{width:100%;height:100%;background:#000;} 
+			canvas{display:block;} 
+			#c2a{position:absolute;bottom:10px;left:10px;color:#c60;font-family:sans-serif;font-size:0.75em;font-weight:normal;}
+			a{color:#c60;}
+		</style>
+		
+		<script>
+			window.requestAnimFrame = (function(){
+				return window.requestAnimationFrame ||
+				window.webkitRequestAnimationFrame ||
+				window.mozRequestAnimationFrame ||
+				function( callback ){
+					window.setTimeout(callback, 1000 / 60);
+				};
+			})();
+
+			var _skyCanvas;
+			var _skyContext;
+			var _lastTime;
+			var _rain=[];
+			var _count=1000;
+			var _width=0;
+			var _height=0;
+			var _rainSpeed=400;
+			var _minimumRainSpeed=100;
+			var _now = Date.now();
+			var _before = Date.now();
+			var _dt;
+			
+			function startUp(){
+				_skyCanvas=document.getElementById('sky');
+				_skyContext=_skyCanvas.getContext('2d');
+							
+				determineSize();
+				main();
+				
+				window.addEventListener('resize', determineSize, false);
+			}
+			
+			function determineSize() {				   
+				_width=window.innerWidth;
+				_height=window.innerHeight;
+				_skyCanvas.width = _width;
+				_skyCanvas.height = _height;
+				_skyContext.fillStyle = 'white';
+				resetAll();
+			}			
+						
+			function resetAll(){
+				for(var i=0; i<_count; i++)
+					reset(i);		
+			}
+			
+			function reset(i)
+			{
+				_rain[i]={};
+				_rain[i].x=Math.random()*_width;
+				_rain[i].y=0-Math.random()*_height;
+				
+				_rain[i].alpha=Math.random();
+				_rain[i].height=_rain[i].alpha*5;			
+				_rain[i].dy=(_rain[i].alpha*_rainSpeed)+_minimumRainSpeed;
+			}
+
+			function main() {
+			    calculateDT();				
+				update();
+				draw();				
+				requestAnimFrame(main);
+			};
+
+			function calculateDT()
+			{
+			    _now = Date.now();
+			    _dt = (_now - _before) / 1000.0;
+			    _before = _now;
+			}
+			
+			function update() {
+				for(var i=0; i<_count; i++)
+					updateSingle(i);
+			}
+			
+			function updateSingle(i){
+				_rain[i].y+=(_rain[i].dy*_dt);
+			
+				if(_rain[i].y>_height)
+					reset(i);			
+			}
+			
+			function draw() {
+				_skyContext.clearRect(0, 0, _width, _height);
+			
+				for(var i=0; i<_count; i++)
+					drawSingle(i);
+			}
+			
+			function drawSingle(i){
+				if(_rain[i].y>0){
+					_skyContext.globalAlpha=_rain[i].alpha;
+					_skyContext.fillRect(_rain[i].x, _rain[i].y, 1, _rain[i].height);		
+				}	
+			}
+
+            window.onload=startUp;			
+		</script>
+	</head>
+
+	<body>				
+		<div id="c2a"><a href="http://blog.kaffled.com">blog.kaffled.com</a> - Canvas Rain</div>
+		<canvas id="sky"></canvas>		
+	</body>
+</html>
